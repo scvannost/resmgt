@@ -16,4 +16,4 @@ This Changelog tracks changes to this project. The notes below include a summary
 - `added` existing pygame code
 - `changed` structure to module
 - `added` testing via unittest
-- `added` pre-commit hook for black and tests
+- `added` pre-commit hook and github workflow for black and tests
