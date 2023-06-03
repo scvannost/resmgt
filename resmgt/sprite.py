@@ -13,7 +13,7 @@ from pygame.locals import (
     K_RIGHT,
 )
 
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
+from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class BasicSprite(pygame.sprite.Sprite):

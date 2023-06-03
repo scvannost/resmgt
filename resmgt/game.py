@@ -9,8 +9,8 @@ from pygame.locals import (
     KEYDOWN,
 )
 
-from sprite import BasicSprite, CircleSprite, RectangleSprite
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
+from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
+from .sprite import BasicSprite, CircleSprite, RectangleSprite
 
 
 class Game:
