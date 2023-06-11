@@ -1,2 +1,2 @@
-from models import *
-from db import Database
+from .models import *
+from .database import *

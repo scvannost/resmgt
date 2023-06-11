@@ -10,7 +10,7 @@ from pygame.locals import (
 )
 
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
-from .sprite import BasicSprite, CircleSprite, RectangleSprite
+from .sprite import BasicSprite, RectangleSprite
 
 
 class Game:
@@ -201,9 +201,3 @@ class Game:
         The underlying pygame.display, if it exists
         """
         return self._surface
-
-
-if __name__ == "__main__":
-    # set up and run a default game
-    # by default, __init__() calls start() and run() calls quit()
-    Game(sprites=[CircleSprite()]).run()

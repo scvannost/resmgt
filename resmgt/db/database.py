@@ -8,10 +8,10 @@ import logging
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
-from typing import Any, Callable, Dict, Type
+from typing import Any, Dict, List, Type
 from urllib.parse import quote_plus
 
-from .models import Base, User  # drop dot when running directly
+from .models import *  # drop dot when running directly
 
 logging.basicConfig()
 logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
@@ -34,18 +34,12 @@ class Database:
     ) -> str:
         return f"postgresql://{quote_plus(user)}:{quote_plus(password)}@{quote_plus(host)}:{port}/{quote_plus(database)}"
 
-    def _with_session(func: Callable[..., Any]) -> Callable[..., Any]:
-        def wrap(self, *args: Any, **kwargs: Any) -> Any:
-            self.open_session()
-            ret = func(self, *args, **kwargs)
-            self.close_session()
-            return ret
-
-        return wrap
-
-    @_with_session
     def add(self, *args, **kwargs) -> None:
         self.session.add(*args, **kwargs)
+        self.session.commit()
+
+    def add_all(self, *args, **kwargs) -> None:
+        self.session.add_all(*args, **kwargs)
         self.session.commit()
 
     def close_session(self) -> None:
@@ -91,24 +85,33 @@ class Database:
                 )
             )
 
-    @_with_session
     def create_all_tables(self) -> None:
         Base.metadata.create_all(self.engine)
 
-    @_with_session
     def delete(self, *args, **kwargs) -> None:
         self.session.delete(*args, **kwargs)
         self.session.commit()
 
-    def disconnect(self) -> None:
+    def disconnect(self, *, close_session_if_needed: bool = True) -> None:
+        if close_session_if_needed and self.session is not None:
+            self.close_session()
         self.engine.dispose()
         self.engine = None
 
-    @_with_session
-    def drop_all_tables(self) -> None:
-        Base.metadata.reflect(self.engine)
-        for tbl in Base.metadata.tables.values():
-            tbl.drop(self.engine)
+    def drop_all_tables(self, *, close_session_if_needed: bool = True) -> None:
+        if close_session_if_needed and self.session is not None:
+            self.close_session()
+
+        ordered_tables: List[Type] = [
+            VillagerTasks,
+            Villager,
+            Building,
+            # BuildingType,
+            User,
+        ]
+
+        for tbl in ordered_tables:
+            tbl.__table__.drop(self.engine)
 
     def drop_database(
         self,
@@ -117,22 +120,28 @@ class Database:
         database: str,
         host: str = "localhost",
         port: int = 5432,
+        *,
+        close_session_if_needed: bool = True,
     ) -> None:
+        if close_session_if_needed and self.session is not None:
+            self.close_session()
         drop_database(
             self._generate_connection_string(
                 user=user, password=password, database=database, host=host, port=port
             )
         )
 
+    def execute(self, *args, **kwargs) -> Any:
+        return self.session.execute(*args, **kwargs)
+
+    def merge(self, *args, **kwargs) -> Any:
+        return self.session.merge(*args, **kwargs)
+
     def open_session(self) -> None:
         if self.Session is not None:
             self.session = self.Session()
         else:
             raise RuntimeError("You must call init_db() before get_session()")
-
-    @_with_session
-    def query(self, *args, **kwargs) -> Any:
-        return self.session.query(*args, **kwargs)
 
 
 def load_dotenv_config() -> Dict[str, Any]:
@@ -146,23 +155,3 @@ def load_dotenv_config() -> Dict[str, Any]:
         "password": config.get("PGPASSWORD"),
     }
     return {k: v for k, v in all_kwargs.items() if v is not None}
-
-
-if __name__ == "__main__":
-    db = Database()
-    db.connect(**load_dotenv_config(), create_db_if_not_exist=True)
-    db.create_all_tables()
-
-    u = User(name="scvannost", email="scvannost@gmail.com")
-    db.add(u)
-
-    users = db.query(User).all()
-    user: User
-    for user in users:
-        print(user.uuid, user.name, user.email)
-
-    db.delete(u)
-
-    db.drop_all_tables()
-    db.drop_database(**load_dotenv_config())
-    db.disconnect()
