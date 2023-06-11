@@ -11,6 +11,10 @@ This Changelog tracks changes to this project. The notes below include a summary
 
 ## Version `0.0.0`
 
+### 10 Jun 2023
+
+- `added` postgres database with declarative sqlalchemy
+
 ### 03 Jun 2023
 
 - `added` existing pygame code

@@ -1,2 +1,6 @@
 ipykernel
 pygame
+psycopg2-binary
+python-dotenv
+SQLAlchemy
+sqlalchemy-utils
