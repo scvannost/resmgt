@@ -55,8 +55,14 @@ On Windows, you may need to add `C:\Program Files\PostgreSQL\{version}\bin` to y
 
 ## Tests
 
-Testing is provided via `unittest`. Run:
+Unit testing is provided via `unittest`. Run:
 
 ```bash
 python3 -m unittest discover tests
+```
+
+Currently, no tests have been implemented so to run the test script:
+
+```bash
+python3 ./test_script.py
 ```

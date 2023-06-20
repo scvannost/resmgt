@@ -1,10 +1,10 @@
 __all__ = [
     "Base",
     "Building",
-    # "BuildingType",
+    "BuildingType",
     "User",
     "Villager",
-    "VillagerTasks",
+    "VillagerTask",
 ]
 
 from sqlalchemy import ForeignKey, text
@@ -36,8 +36,9 @@ class Building(Base):
     )
 
 
-# class BuildingType(Base):
-#     __tablename__ = "building_types"
+class BuildingType(Base):
+    __tablename__ = "building_types"
+    name: Mapped[str] = mapped_column(primary_key=True)
 
 
 class User(Base):
@@ -64,11 +65,11 @@ class Villager(Base):
     work: Mapped[Optional[Building]] = relationship(
         foreign_keys=work_id, back_populates="workers"
     )
-    task_queue: Mapped[Set["VillagerTasks"]] = relationship(back_populates="villager")
+    task_queue: Mapped[Set["VillagerTask"]] = relationship(back_populates="villager")
 
 
-class VillagerTasks(Base):
-    __tablename__ = "villager_work_queues"
+class VillagerTask(Base):
+    __tablename__ = "villager_tasks"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     villager_id: Mapped[int] = mapped_column(
         ForeignKey(Villager.id, ondelete="cascade")

@@ -103,7 +103,7 @@ class Database:
             self.close_session()
 
         ordered_tables: List[Type] = [
-            VillagerTasks,
+            VillagerTask,
             Villager,
             Building,
             # BuildingType,

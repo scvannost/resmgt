@@ -1,6 +1,6 @@
 from resmgt.db import Building, Database, load_dotenv_config, User, Villager
 from resmgt.game import Game
-from resmgt.sprite import CircleSprite
+from resmgt.sprite import RectangleSprite
 
 
 db = Database()
@@ -40,4 +40,4 @@ finally:
 
 # set up and run a default game
 # by default, __init__() calls start() and run() calls quit()
-Game(sprites=[CircleSprite()]).run()
+Game(other_sprites=[RectangleSprite()]).run()

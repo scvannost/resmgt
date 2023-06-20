@@ -1,10 +1,14 @@
 __all__ = [
     "BasicSprite",
     "CircleSprite",
+    "IconSprite",
     "RectangleSprite",
+    "RobotIconSprite",
+    "SPRITE_GROUPS",
 ]
 
-from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
+import os
 import pygame
 from pygame.locals import (
     K_UP,
@@ -12,8 +16,12 @@ from pygame.locals import (
     K_LEFT,
     K_RIGHT,
 )
+from typing import Dict, List, Optional, Tuple
 
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
+
+
+SPRITE_GROUPS: Dict[str, pygame.sprite.Group] = defaultdict(pygame.sprite.Group)
 
 
 class BasicSprite(pygame.sprite.Sprite):
@@ -23,8 +31,6 @@ class BasicSprite(pygame.sprite.Sprite):
 
     Parameters
     ----------
-    color: Optional[Tuple[int, int, int]] = None
-        the color to fill the sprite, in the format (r,g,b)
     location: Optional[Tuple[float, float]] = None
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
@@ -33,8 +39,6 @@ class BasicSprite(pygame.sprite.Sprite):
 
     Attributes
     ----------
-    color: Tuple[int, int, int] = (0, 0, 255)
-        the color to fill the sprite, in the format (r,g,b)
     location: Tuple[float, float] = (250.0, 250.0)
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
@@ -52,31 +56,22 @@ class BasicSprite(pygame.sprite.Sprite):
         skipped if not self.speed
     """
 
-    color: Tuple[int, int, int] = (0, 0, 255)
     location: Tuple[float, float] = (250.0, 250.0)
     rect: pygame.rect.RectType
-    speed: float = 5.0
+    speed: float = 2.0
     surf: pygame.SurfaceType
 
     def __init__(
         self,
-        color: Optional[Tuple[int, int, int]] = None,
         location: Optional[Tuple[float, float]] = None,
         speed: Optional[float] = None,
     ) -> None:
         super().__init__()
-        if color is not None:
-            self.color = color
         if location is not None:
             self.location = location
         if speed is not None:
             self.speed = speed
-
-    def draw(self, screen: pygame.SurfaceType) -> None:
-        """
-        Draw the top-left corner of the rectangle at self.location
-        """
-        screen.blit(self.surf, self.rect)
+        SPRITE_GROUPS[type(self)].add(self)
 
     def move(self, pressed_keys: Dict[int, bool]) -> None:
         if not self.speed:
@@ -94,7 +89,7 @@ class BasicSprite(pygame.sprite.Sprite):
 
         r: float = sum(abs(x) for x in xy)
         if r:
-            xy = [xy[0] / r * self.speed, xy[1] / r * self.speed]
+            xy = [xy[0] * self.speed, xy[1] / r * self.speed]
 
         self.rect.move_ip(xy[0], xy[1])
 
@@ -103,9 +98,9 @@ class BasicSprite(pygame.sprite.Sprite):
             self.rect.left = 0
         if self.rect.right > SCREEN_WIDTH:
             self.rect.right = SCREEN_WIDTH
-        if self.rect.top <= 0:
+        if self.rect.top < 0:
             self.rect.top = 0
-        if self.rect.bottom >= SCREEN_HEIGHT:
+        if self.rect.bottom > SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
 
 
@@ -153,6 +148,7 @@ class CircleSprite(BasicSprite):
     """
 
     bg_color: Tuple[int, int, int] = (255, 255, 255)  # (r,g,b)
+    color: Tuple[int, int, int] = (0, 0, 255)
     radius: float = 75.0
 
     def __init__(
@@ -163,11 +159,13 @@ class CircleSprite(BasicSprite):
         radius: Optional[float] = None,
         speed: Optional[float] = None,
     ) -> None:
-        super().__init__(color=color, location=location, speed=speed)
-        if radius is not None:
-            self.radius = radius
+        super().__init__(location=location, speed=speed)
         if bg_color is not None:
             self.bg_color = bg_color
+        if color is not None:
+            self.color = color
+        if radius is not None:
+            self.radius = radius
 
         self.surf = pygame.Surface(
             size=(self.radius * 2, self.radius * 2),
@@ -187,7 +185,7 @@ class CircleSprite(BasicSprite):
 class RectangleSprite(BasicSprite):
     """
     A simple sprite in the shape of a rectangle
-    They must have a color, location, and size
+    They must have a color and size
 
     Parameters
     ----------
@@ -227,15 +225,18 @@ class RectangleSprite(BasicSprite):
     """
 
     size: Tuple[float, float] = (50.0, 50.0)
+    color: Tuple[int, int, int] = (0, 0, 255)
 
     def __init__(
         self,
-        location: Tuple[float, float],
+        location: Optional[Tuple[float, float]] = None,
         color: Optional[Tuple[int, int, int]] = None,
         size: Optional[Tuple[float, float]] = None,
         speed: Optional[float] = None,
     ) -> None:
-        super().__init__(color=color, location=location, speed=speed)
+        super().__init__(location=location, speed=speed)
+        if color is not None:
+            self.color = color
         if size is not None:
             self.size = size
 
@@ -243,3 +244,127 @@ class RectangleSprite(BasicSprite):
         # Give the surface a color to separate it from the background
         self.rect = self.surf.fill(color=(0, 0, 0))
         self.rect.move_ip(*self.location)
+        self.image = self.surf
+
+
+class IconSprite(BasicSprite):
+    """
+    A simple sprite that contains a picture
+    They must have an image path
+
+    Parameters
+    ----------
+    location: Optional[Tuple[float, float]] = None
+        where in the game the sprite should be rendered
+        this means slightly different things for each sprite atm
+    speed: Optional[float] = None
+        the top speed that the sprite can move in total
+
+    Attributes
+    ----------
+    location: Tuple[float, float] = (250.0, 250.0)
+        where in the game the sprite should be rendered
+        this means slightly different things for each sprite atm
+    size: Optional[Tuple[float, float]] = None
+        the width and height the rectangle should occupy
+        the top-left corner is at the given location
+    speed: float = 5.0
+        the top speed that the sprite can move in total
+
+    Methods
+    -------
+    draw(self, surface: pygame.SurfaceType) -> None
+        a function to implement rendering the sprite onto the given surface
+        no need to call pygame.display.flip()
+    move(self, pressed_keys: Dict[int, bool]) -> None
+        a function to implement movement of the sprite given the key-presses
+        the distance moved is according to the speed of the sprite
+        skipped if not self.speed
+    """
+
+    image: pygame.Surface
+    size: Tuple[float, float] = (50.0, 50.0)
+
+    def __init__(
+        self,
+        image_path: str,
+        location: Optional[Tuple[float, float]] = None,
+        size: Optional[Tuple[float, float]] = None,
+        speed: Optional[float] = None,
+    ) -> None:
+        super().__init__(location=location, speed=speed)
+        if size is not None:
+            self.size = size
+
+        image = pygame.image.load(image_path)
+        self.image = pygame.transform.scale(image, (size[0], size[1]))
+
+        self.rect = self.image.get_rect()
+        self.rect.move_ip(*self.location)
+
+
+class RobotIconSprite(IconSprite):
+    """
+    A simple robot sprite
+    They must have a location
+
+    Parameters
+    ----------
+    location: Optional[Tuple[float, float]] = None
+        where in the game the sprite should be rendered
+        this means slightly different things for each sprite atm
+    speed: Optional[float] = None
+        the top speed that the sprite can move in total
+
+    Attributes
+    ----------
+    location: Tuple[float, float] = (250.0, 250.0)
+        where in the game the sprite should be rendered
+        this means slightly different things for each sprite atm
+    size: Optional[Tuple[float, float]] = None
+        the width and height the rectangle should occupy
+        the top-left corner is at the given location
+    speed: float = 5.0
+        the top speed that the sprite can move in total
+
+    Methods
+    -------
+    draw(self, surface: pygame.SurfaceType) -> None
+        a function to implement rendering the sprite onto the given surface
+        no need to call pygame.display.flip()
+    move(self, pressed_keys: Dict[int, bool]) -> None
+        a function to implement movement of the sprite given the key-presses
+        the distance moved is according to the speed of the sprite
+        skipped if not self.speed
+    """
+
+    image: pygame.Surface
+    size: Tuple[float, float] = (64.0, 64.0)
+
+    def __init__(
+        self,
+        location: Optional[Tuple[float, float]] = None,
+        size: Optional[Tuple[float, float]] = None,
+        speed: Optional[float] = None,
+    ) -> None:
+        if size is not None:
+            self.size = size
+        super().__init__(
+            image_path=os.path.join(
+                os.path.dirname(__file__), "img", "sprites", "robot.png"
+            ),
+            location=location,
+            size=self.size,
+            speed=speed,
+        )
+
+
+# set up types for sprite rendering order
+for sprite_type in [
+    BasicSprite,
+    CircleSprite,
+    RectangleSprite,
+    IconSprite,
+    RobotIconSprite,
+]:
+    SPRITE_GROUPS[sprite_type]

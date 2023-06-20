@@ -10,7 +10,7 @@ from pygame.locals import (
 )
 
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
-from .sprite import BasicSprite, RectangleSprite
+from .sprite import BasicSprite, RobotIconSprite, SPRITE_GROUPS
 
 
 class Game:
@@ -24,11 +24,17 @@ class Game:
         in the format (r,g,b)
     size: Optional[Tuple[float, float]] = None
         the size of the underlying display to create
+    player_sprite: Optional[BasicSprite] = None
+        the movable sprite that the player controls
+    other_sprites: List[BasicSprite] = []
+        the other sprites to render that the player doesn't control
     start: bool = True
         whether to call self.start()
 
     Attributes
     ----------
+    player: BasicSprite = RobotIconSprite(location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+        the movable sprite that the player controls
     running: bool = False
         whether the game is running or not
         set to False to prevent game from continuing
@@ -55,8 +61,8 @@ class Game:
         calls pygame.init(), sets up self.screen, and sets self.running = True
     """
 
-    bg_color: Tuple[int, int, int] = (255, 255, 255)  # (r,g,b)
-    player: Optional[RectangleSprite] = RectangleSprite(
+    bg_color: Tuple[int, int, int] = (0, 154, 23)  # (r,g,b)
+    player: RobotIconSprite = RobotIconSprite(
         location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     )
     _running: bool = False
@@ -68,7 +74,8 @@ class Game:
         self,
         bg_color: Optional[Tuple[int, int, int]] = None,  # (r,g,b)
         size: Optional[Tuple[float, float]] = None,
-        sprites: List[BasicSprite] = [],
+        player_sprite: Optional[BasicSprite] = None,
+        other_sprites: List[BasicSprite] = [],
         start: bool = True,
     ) -> None:
         """
@@ -79,6 +86,10 @@ class Game:
             in the format (r,g,b)
         size: Optional[Tuple[float, float]] = None
             the size of the underlying display to create
+        player_sprite: Optional[BasicSprite] = None
+            the movable sprite that the player controls
+        other_sprites: List[BasicSprite] = []
+            the other sprites to render that the player doesn't control
         start: bool = True
             whether to call self.start()
         """
@@ -86,8 +97,10 @@ class Game:
             self.bg_color = bg_color
         if size is not None:
             self._size = size
+        if player_sprite is not None:
+            self.player = player_sprite
 
-        for spr in sprites:
+        for spr in other_sprites:
             self.sprites.add(spr)
         self.sprites.add(self.player)
 
@@ -126,15 +139,15 @@ class Game:
 
             # Get all the keys currently pressed and
             # update the player sprite based on user keypresses
-            self.player.move(pygame.key.get_pressed())
+            self.player.move(pressed_keys=pygame.key.get_pressed())
 
             # Fill the background with bg_color
             self.surface.fill(self.bg_color)
 
             # Draw all the objects
-            spr: BasicSprite
-            for spr in self.sprites:
-                spr.draw(self.surface)
+            group: pygame.sprite.Group
+            for group in SPRITE_GROUPS.values():
+                group.draw(self.surface)
 
             # Flip ie update the display
             pygame.display.flip()

@@ -11,6 +11,12 @@ This Changelog tracks changes to this project. The notes below include a summary
 
 ## Version `0.0.0`
 
+### 19 Jun 2023
+
+- `added` sprite groups for displaying things at one time
+- `added` icon and robot icon sprite classes
+- `changed` default player sprite to robot
+
 ### 11 Jun 2023
 
 - `changed` sqlalchemy declarative to 2.0 standard
