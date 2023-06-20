@@ -11,7 +11,7 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 from typing import Any, Dict, List, Type
 from urllib.parse import quote_plus
 
-from .models import *  # drop dot when running directly
+from .models import *
 
 logging.basicConfig()
 logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)

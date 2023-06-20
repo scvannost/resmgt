@@ -2,12 +2,12 @@ __all__ = [
     "Game",
 ]
 
-from typing import List, Optional, Tuple
 import pygame
 from pygame.locals import (
     K_ESCAPE,
     KEYDOWN,
 )
+from typing import List, Optional, Tuple
 
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
 from .sprite import BasicSprite, RobotIconSprite, SPRITE_GROUPS
