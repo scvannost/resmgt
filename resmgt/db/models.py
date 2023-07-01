@@ -53,6 +53,8 @@ class User(Base):
 class Villager(Base):
     __tablename__ = "villagers"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    x: Mapped[float] = mapped_column(default=0.0)
+    y: Mapped[float] = mapped_column(default=0.0)
     hunger: Mapped[float] = mapped_column(default=0.0)
     tiredness: Mapped[float] = mapped_column(default=0.0)
     happiness: Mapped[float] = mapped_column(default=0.0)

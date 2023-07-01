@@ -3,11 +3,12 @@ __all__ = [
     "CircleSprite",
     "IconSprite",
     "RectangleSprite",
-    "RobotIconSprite",
+    "VillagerIconSprite",
     "SPRITE_GROUPS",
 ]
 
 from collections import defaultdict
+from math import sqrt
 import os
 import pygame
 from pygame.locals import (
@@ -18,6 +19,7 @@ from pygame.locals import (
 )
 from typing import Dict, List, Optional, Tuple
 
+from .db import Database, Villager
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
@@ -58,7 +60,7 @@ class BasicSprite(pygame.sprite.Sprite):
 
     location: Tuple[float, float] = (250.0, 250.0)
     rect: pygame.rect.RectType
-    speed: float = 2.0
+    speed: float = 10.0
     surf: pygame.SurfaceType
 
     def __init__(
@@ -87,7 +89,7 @@ class BasicSprite(pygame.sprite.Sprite):
         if pressed_keys[K_RIGHT]:
             xy[0] += 1
 
-        r: float = sum(abs(x) for x in xy)
+        r: float = sqrt(sum(abs(x) ** 2 for x in xy))
         if r:
             xy = [xy[0] * self.speed, xy[1] / r * self.speed]
 
@@ -303,9 +305,9 @@ class IconSprite(BasicSprite):
         self.rect.move_ip(*self.location)
 
 
-class RobotIconSprite(IconSprite):
+class VillagerIconSprite(IconSprite):
     """
-    A simple robot sprite
+    A simple sprite representing a villager
     They must have a location
 
     Parameters
@@ -315,6 +317,8 @@ class RobotIconSprite(IconSprite):
         this means slightly different things for each sprite atm
     speed: Optional[float] = None
         the top speed that the sprite can move in total
+    **kwargs
+        passed into db.Villager
 
     Attributes
     ----------
@@ -338,7 +342,9 @@ class RobotIconSprite(IconSprite):
         skipped if not self.speed
     """
 
+    db: Optional[Database]
     image: pygame.Surface
+    model: Villager
     size: Tuple[float, float] = (64.0, 64.0)
 
     def __init__(
@@ -346,6 +352,9 @@ class RobotIconSprite(IconSprite):
         location: Optional[Tuple[float, float]] = None,
         size: Optional[Tuple[float, float]] = None,
         speed: Optional[float] = None,
+        db: Optional[Database] = None,
+        insert: bool = True,
+        **kwargs
     ) -> None:
         if size is not None:
             self.size = size
@@ -357,6 +366,28 @@ class RobotIconSprite(IconSprite):
             size=self.size,
             speed=speed,
         )
+        kwargs.update(
+            {
+                "x": self.location[0],
+                "y": self.location[1],
+            }
+        )
+        self.model = Villager(**kwargs)
+
+        if db is not None:
+            self.db = db
+            if insert:
+                self.insert(self.db)
+
+    def insert(self, db: Database):
+        self.db = db
+        self.db.add(self.model)
+
+    def move(self, pressed_keys: Dict[int, bool]) -> None:
+        super().move(pressed_keys)
+
+        self.model.x, self.model.y = self.location
+        self.db.merge(self.model)
 
 
 # set up types for sprite rendering order
@@ -365,6 +396,6 @@ for sprite_type in [
     CircleSprite,
     RectangleSprite,
     IconSprite,
-    RobotIconSprite,
+    VillagerIconSprite,
 ]:
     SPRITE_GROUPS[sprite_type]

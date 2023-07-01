@@ -5,12 +5,12 @@ __all__ = [
 import pygame
 from pygame.locals import (
     K_ESCAPE,
-    KEYDOWN,
 )
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
-from .sprite import BasicSprite, RobotIconSprite, SPRITE_GROUPS
+from .db import Database, load_dotenv_config
+from .settings import FPS, SCREEN_HEIGHT, SCREEN_WIDTH
+from .sprite import BasicSprite, VillagerIconSprite, SPRITE_GROUPS
 
 
 class Game:
@@ -33,8 +33,11 @@ class Game:
 
     Attributes
     ----------
-    player: BasicSprite = RobotIconSprite(location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
-        the movable sprite that the player controls
+    clock: pygame.time.Clock = None
+        a timer to limit the update rate of the
+        not None if between calls to self.start() and self.quit()
+    player: VillagerIconSprite = VillagerIconSprite(location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+        the movable sprite representing the villager that the player controls
     running: bool = False
         whether the game is running or not
         set to False to prevent game from continuing
@@ -62,9 +65,11 @@ class Game:
     """
 
     bg_color: Tuple[int, int, int] = (0, 154, 23)  # (r,g,b)
-    player: RobotIconSprite = RobotIconSprite(
-        location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+    db: Database = Database().connect(
+        **load_dotenv_config(), create_db_if_not_exist=True
     )
+    clock: Optional[pygame.time.Clock] = None
+    player: Optional[VillagerIconSprite] = None
     _running: bool = False
     sprites: pygame.sprite.Group = pygame.sprite.Group()
     _surface: Optional[pygame.SurfaceType] = None
@@ -74,8 +79,9 @@ class Game:
         self,
         bg_color: Optional[Tuple[int, int, int]] = None,  # (r,g,b)
         size: Optional[Tuple[float, float]] = None,
-        player_sprite: Optional[BasicSprite] = None,
+        player_sprite: Optional[VillagerIconSprite] = None,
         other_sprites: List[BasicSprite] = [],
+        db: Database = None,
         start: bool = True,
     ) -> None:
         """
@@ -86,10 +92,12 @@ class Game:
             in the format (r,g,b)
         size: Optional[Tuple[float, float]] = None
             the size of the underlying display to create
-        player_sprite: Optional[BasicSprite] = None
+        player_sprite: Optional[VillagerIconSprite] = None
             the movable sprite that the player controls
         other_sprites: List[BasicSprite] = []
             the other sprites to render that the player doesn't control
+        db: Database = None
+            the database to use for running the game
         start: bool = True
             whether to call self.start()
         """
@@ -97,12 +105,21 @@ class Game:
             self.bg_color = bg_color
         if size is not None:
             self._size = size
+
+        if db is not None:
+            self.db = db
+        if self.db.session is None:
+            self.db.open_session()
+        self.db.create_all_tables()
+
         if player_sprite is not None:
             self.player = player_sprite
+        if self.player is not None:
+            self.player.insert(self.db)
+            self.sprites.add(self.player)
 
         for spr in other_sprites:
             self.sprites.add(spr)
-        self.sprites.add(self.player)
 
         if start:
             self.start()
@@ -130,16 +147,18 @@ class Game:
             whether to call self.quit() after not self.running
         """
         while self.running:
+            self.clock.tick(FPS)
             # Did the user click the window close button or hit the escape key?
             for event in pygame.event.get():
-                if (
-                    event.type == KEYDOWN and event.key == K_ESCAPE
-                ) or event.type == pygame.QUIT:
+                if event.type == pygame.QUIT:
                     self.running = False
 
             # Get all the keys currently pressed and
             # update the player sprite based on user keypresses
-            self.player.move(pressed_keys=pygame.key.get_pressed())
+            pressed_keys: Dict[str, bool] = pygame.key.get_pressed()
+            if pressed_keys[K_ESCAPE]:
+                self.running = False
+            self.player.move(pressed_keys=pressed_keys)
 
             # Fill the background with bg_color
             self.surface.fill(self.bg_color)
@@ -204,6 +223,7 @@ class Game:
         # Set up the drawing window
         pygame.init()
         self._surface: pygame.SurfaceType = pygame.display.set_mode(size=self.size)
+        self.clock = pygame.time.Clock()
 
         # Run until the user asks to quit
         self._running = True

@@ -55,7 +55,7 @@ class Database:
         port: int = 5432,
         *,
         create_db_if_not_exist: bool = True,
-    ) -> None:
+    ) -> "Database":
         self.engine = create_engine(
             self._generate_connection_string(
                 user=user, password=password, database=database, host=host, port=port
@@ -85,6 +85,8 @@ class Database:
                 )
             )
 
+        return self
+
     def create_all_tables(self) -> None:
         Base.metadata.create_all(self.engine)
 
@@ -106,7 +108,7 @@ class Database:
             VillagerTask,
             Villager,
             Building,
-            # BuildingType,
+            BuildingType,
             User,
         ]
 
@@ -141,7 +143,7 @@ class Database:
         if self.Session is not None:
             self.session = self.Session()
         else:
-            raise RuntimeError("You must call init_db() before get_session()")
+            raise RuntimeError("You must call connect() before get_session()")
 
 
 def load_dotenv_config() -> Dict[str, Any]:
