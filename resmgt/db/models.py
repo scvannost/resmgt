@@ -7,10 +7,11 @@ __all__ = [
     "VillagerTask",
 ]
 
-from sqlalchemy import ForeignKey, text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Any, Dict, Optional, Set
 from uuid import UUID
+
+from sqlalchemy import ForeignKey, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 # declarative base class

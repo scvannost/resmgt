@@ -7,21 +7,21 @@ __all__ = [
     "SPRITE_GROUPS",
 ]
 
+import os
 from collections import defaultdict
 from math import sqrt
-import os
+from typing import Dict, List, Optional, Tuple
+
 import pygame
 from pygame.locals import (
-    K_UP,
     K_DOWN,
     K_LEFT,
     K_RIGHT,
+    K_UP,
 )
-from typing import Dict, List, Optional, Tuple
 
-from .db import Database, Villager
+from .db.database import Database, Villager
 from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
-
 
 SPRITE_GROUPS: Dict[str, pygame.sprite.Group] = defaultdict(pygame.sprite.Group)
 

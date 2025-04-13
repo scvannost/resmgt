@@ -6,7 +6,7 @@ A silly little resource management / city building / survival / 4X game.
 
 Requires:
 
-- [python 3](https://www.python.org/downloads/) (tested on 3.9)
+- [python 3](https://www.python.org/downloads/) (tested on 3.13)
 - [postgres](https://www.postgresql.org/download/) (tested on 15.3)
 
 ### python 3
@@ -16,7 +16,7 @@ Most computers come with python 3 nowadays.
 It's suggested to install this game in a virtual environment; to create one run
 
 ```bash
-python3 -m venv venv
+python -m venv venv
 ```
 
 Then to activate the venv run:
@@ -24,7 +24,7 @@ Then to activate the venv run:
 - Windows: `& venv/Scripts/Activate.ps1`
 - Unix: `source venv/scripts/activate`
 
-The venv's name will be prepended to the terminal line. When running, run `deactive` to deactivate it.
+The venv's name will be prepended to the terminal line. When running, run `deactivate` to deactivate it.
 
 To install run:
 
@@ -58,11 +58,11 @@ On Windows, you may need to add `C:\Program Files\PostgreSQL\{version}\bin` to y
 Unit testing is provided via `unittest`. Run:
 
 ```bash
-python3 -m unittest discover tests
+python -m unittest discover tests
 ```
 
 Currently, no tests have been implemented so to run the test script:
 
 ```bash
-python3 ./test_script.py
+python ./test_script.py
 ```

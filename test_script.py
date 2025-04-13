@@ -1,4 +1,4 @@
-from resmgt.db import Building, load_dotenv_config, User, Villager
+from resmgt.db.database import Building, User, Villager, load_dotenv_config
 from resmgt.game import Game
 from resmgt.settings import SCREEN_HEIGHT, SCREEN_WIDTH
 from resmgt.sprite import RectangleSprite, VillagerIconSprite

@@ -3,24 +3,25 @@ __all__ = [
     "load_dotenv_config",
 ]
 
-from dotenv import dotenv_values
 import logging
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy_utils import create_database, database_exists, drop_database
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import quote_plus
 
-from .models import *
+from dotenv import dotenv_values
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy_utils import create_database, database_exists, drop_database
+
+from .models import Base, Building, BuildingType, User, Villager, VillagerTask
 
 logging.basicConfig()
 logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
 class Database:
-    Session: Type = None
-    engine: Engine = None
-    session: Session = None
+    SessionType: Optional[Type] = None
+    engine: Optional[Engine] = None
+    session: Optional[Session] = None
     host: str = "localhost"
     port: int = 5432
 
@@ -61,7 +62,7 @@ class Database:
                 user=user, password=password, database=database, host=host, port=port
             )
         )
-        self.Session = sessionmaker(bind=self.engine)
+        self.SessionType = sessionmaker(bind=self.engine)
 
         if (
             not database_exists(
@@ -140,8 +141,8 @@ class Database:
         return self.session.merge(*args, **kwargs)
 
     def open_session(self) -> None:
-        if self.Session is not None:
-            self.session = self.Session()
+        if self.SessionType is not None:
+            self.session = self.SessionType()
         else:
             raise RuntimeError("You must call connect() before get_session()")
 

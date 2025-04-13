@@ -7,9 +7,9 @@ __all__ = [
     "SCREEN_WIDTH",
 ]
 
-from .game import *
-from .settings import *
-from .sprite import *
+from .game import Game
+from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
+from .sprite import BasicSprite, CircleSprite, RectangleSprite
 
 __author__: str = "SC van Nostrand"
 __email__: str = "scvannost@gmail.com"

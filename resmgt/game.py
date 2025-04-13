@@ -2,15 +2,16 @@ __all__ = [
     "Game",
 ]
 
+from typing import Dict, List, Optional, Tuple
+
 import pygame
 from pygame.locals import (
     K_ESCAPE,
 )
-from typing import Dict, List, Optional, Tuple
 
-from .db import Database, load_dotenv_config
+from .db.database import Database, load_dotenv_config
 from .settings import FPS, SCREEN_HEIGHT, SCREEN_WIDTH
-from .sprite import BasicSprite, VillagerIconSprite, SPRITE_GROUPS
+from .sprite import SPRITE_GROUPS, BasicSprite, VillagerIconSprite
 
 
 class Game:
@@ -66,7 +67,8 @@ class Game:
 
     bg_color: Tuple[int, int, int] = (0, 154, 23)  # (r,g,b)
     db: Database = Database().connect(
-        **load_dotenv_config(), create_db_if_not_exist=True
+        **load_dotenv_config(),
+        create_db_if_not_exist=True,
     )
     clock: Optional[pygame.time.Clock] = None
     player: Optional[VillagerIconSprite] = None
