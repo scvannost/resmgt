@@ -11,7 +11,8 @@ from pygame.locals import (
 
 from .db.database import Database, load_dotenv_config
 from .settings import FPS, SCREEN_HEIGHT, SCREEN_WIDTH
-from .sprite import SPRITE_GROUPS, BasicSprite, VillagerIconSprite
+from .sprites.base_sprites import SPRITE_GROUPS, BasicSprite
+from .sprites.icon_sprites import VillagerIconSprite
 
 
 class Game:

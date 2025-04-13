@@ -1,13 +1,10 @@
 __all__ = [
     "BasicSprite",
     "CircleSprite",
-    "IconSprite",
     "RectangleSprite",
-    "VillagerIconSprite",
     "SPRITE_GROUPS",
 ]
 
-import os
 from collections import defaultdict
 from math import sqrt
 from typing import Dict, List, Optional, Tuple
@@ -20,8 +17,7 @@ from pygame.locals import (
     K_UP,
 )
 
-from .db.database import Database, Villager
-from .settings import SCREEN_HEIGHT, SCREEN_WIDTH
+from ..settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 SPRITE_GROUPS: Dict[str, pygame.sprite.Group] = defaultdict(pygame.sprite.Group)
 
@@ -91,7 +87,7 @@ class BasicSprite(pygame.sprite.Sprite):
 
         r: float = sqrt(sum(abs(x) ** 2 for x in xy))
         if r:
-            xy = [xy[0] * self.speed, xy[1] / r * self.speed]
+            xy = [xy[0] / r * self.speed, xy[1] / r * self.speed]
 
         self.rect.move_ip(xy[0], xy[1])
 
@@ -109,7 +105,6 @@ class BasicSprite(pygame.sprite.Sprite):
 class CircleSprite(BasicSprite):
     """
     A simple sprite in the shape of a circle
-    They must have a color, location, and radius
 
     Parameters
     ----------
@@ -187,7 +182,6 @@ class CircleSprite(BasicSprite):
 class RectangleSprite(BasicSprite):
     """
     A simple sprite in the shape of a rectangle
-    They must have a color and size
 
     Parameters
     ----------
@@ -249,153 +243,10 @@ class RectangleSprite(BasicSprite):
         self.image = self.surf
 
 
-class IconSprite(BasicSprite):
-    """
-    A simple sprite that contains a picture
-    They must have an image path
-
-    Parameters
-    ----------
-    location: Optional[Tuple[float, float]] = None
-        where in the game the sprite should be rendered
-        this means slightly different things for each sprite atm
-    speed: Optional[float] = None
-        the top speed that the sprite can move in total
-
-    Attributes
-    ----------
-    location: Tuple[float, float] = (250.0, 250.0)
-        where in the game the sprite should be rendered
-        this means slightly different things for each sprite atm
-    size: Optional[Tuple[float, float]] = None
-        the width and height the rectangle should occupy
-        the top-left corner is at the given location
-    speed: float = 5.0
-        the top speed that the sprite can move in total
-
-    Methods
-    -------
-    draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
-        no need to call pygame.display.flip()
-    move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
-    """
-
-    image: pygame.Surface
-    size: Tuple[float, float] = (50.0, 50.0)
-
-    def __init__(
-        self,
-        image_path: str,
-        location: Optional[Tuple[float, float]] = None,
-        size: Optional[Tuple[float, float]] = None,
-        speed: Optional[float] = None,
-    ) -> None:
-        super().__init__(location=location, speed=speed)
-        if size is not None:
-            self.size = size
-
-        image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(image, (size[0], size[1]))
-
-        self.rect = self.image.get_rect()
-        self.rect.move_ip(*self.location)
-
-
-class VillagerIconSprite(IconSprite):
-    """
-    A simple sprite representing a villager
-    They must have a location
-
-    Parameters
-    ----------
-    location: Optional[Tuple[float, float]] = None
-        where in the game the sprite should be rendered
-        this means slightly different things for each sprite atm
-    speed: Optional[float] = None
-        the top speed that the sprite can move in total
-    **kwargs
-        passed into db.Villager
-
-    Attributes
-    ----------
-    location: Tuple[float, float] = (250.0, 250.0)
-        where in the game the sprite should be rendered
-        this means slightly different things for each sprite atm
-    size: Optional[Tuple[float, float]] = None
-        the width and height the rectangle should occupy
-        the top-left corner is at the given location
-    speed: float = 5.0
-        the top speed that the sprite can move in total
-
-    Methods
-    -------
-    draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
-        no need to call pygame.display.flip()
-    move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
-    """
-
-    db: Optional[Database]
-    image: pygame.Surface
-    model: Villager
-    size: Tuple[float, float] = (64.0, 64.0)
-
-    def __init__(
-        self,
-        location: Optional[Tuple[float, float]] = None,
-        size: Optional[Tuple[float, float]] = None,
-        speed: Optional[float] = None,
-        db: Optional[Database] = None,
-        insert: bool = True,
-        **kwargs
-    ) -> None:
-        if size is not None:
-            self.size = size
-        super().__init__(
-            image_path=os.path.join(
-                os.path.dirname(__file__), "img", "sprites", "robot.png"
-            ),
-            location=location,
-            size=self.size,
-            speed=speed,
-        )
-        kwargs.update(
-            {
-                "x": self.location[0],
-                "y": self.location[1],
-            }
-        )
-        self.model = Villager(**kwargs)
-
-        if db is not None:
-            self.db = db
-            if insert:
-                self.insert(self.db)
-
-    def insert(self, db: Database):
-        self.db = db
-        self.db.add(self.model)
-
-    def move(self, pressed_keys: Dict[int, bool]) -> None:
-        super().move(pressed_keys)
-
-        self.model.x, self.model.y = self.location
-        self.db.merge(self.model)
-
-
 # set up types for sprite rendering order
 for sprite_type in [
     BasicSprite,
     CircleSprite,
     RectangleSprite,
-    IconSprite,
-    VillagerIconSprite,
 ]:
     SPRITE_GROUPS[sprite_type]
