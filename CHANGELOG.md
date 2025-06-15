@@ -11,6 +11,12 @@ This Changelog tracks changes to this project. The notes below include a summary
 
 ## Version `0.0.0`
 
+### 14 Jun 2025
+
+- `added` more docstrings
+- `fixed` mistakes in existing docstrings
+- `fixed` small style differences
+
 ### 19 Jun 2023
 
 - `added` sprite groups for displaying things at one time

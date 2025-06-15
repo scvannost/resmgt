@@ -21,7 +21,7 @@ class Game:
 
     Parameters
     ----------
-    bg_color: Tuple[int, int, int] = (255, 255, 255)
+    bg_color: Optional[Tuple[int, int, int]] = None
         the base background color to fill the screen with before drawing anything else
         in the format (r,g,b)
     size: Optional[Tuple[float, float]] = None
@@ -30,14 +30,21 @@ class Game:
         the movable sprite that the player controls
     other_sprites: List[BasicSprite] = []
         the other sprites to render that the player doesn't control
+    db: Optional[Database] = None
+        the database to use for running the game
     start: bool = True
         whether to call self.start()
 
     Attributes
     ----------
+    bg_color: Tuple[int, int, int] = (0, 154, 23)
+        the base background color to fill the screen with before drawing anything else
+        in the format (r,g,b)
     clock: pygame.time.Clock = None
-        a timer to limit the update rate of the
+        a timer to limit the update rate of the game
         not None if between calls to self.start() and self.quit()
+    db: Database = Database().connect(**load_dotenv_config(), create_db_if_not_exist=True)
+        the database to use for running the game
     player: VillagerIconSprite = VillagerIconSprite(location=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
         the movable sprite representing the villager that the player controls
     running: bool = False
@@ -52,6 +59,8 @@ class Game:
         the size of the underlying display to create
         can only be changed when self.screen is None
         other changes are nullpotent
+    sprites: pygame.sprite.Group
+        the group of sprites that are in the game
 
     Methods
     -------
@@ -67,11 +76,11 @@ class Game:
     """
 
     bg_color: Tuple[int, int, int] = (0, 154, 23)  # (r,g,b)
+    clock: Optional[pygame.time.Clock] = None
     db: Database = Database().connect(
         **load_dotenv_config(),
         create_db_if_not_exist=True,
     )
-    clock: Optional[pygame.time.Clock] = None
     player: Optional[VillagerIconSprite] = None
     _running: bool = False
     sprites: pygame.sprite.Group = pygame.sprite.Group()
@@ -84,7 +93,7 @@ class Game:
         size: Optional[Tuple[float, float]] = None,
         player_sprite: Optional[VillagerIconSprite] = None,
         other_sprites: List[BasicSprite] = [],
-        db: Database = None,
+        db: Optional[Database] = None,
         start: bool = True,
     ) -> None:
         """
@@ -99,7 +108,7 @@ class Game:
             the movable sprite that the player controls
         other_sprites: List[BasicSprite] = []
             the other sprites to render that the player doesn't control
-        db: Database = None
+        db: Optional[Database] = None
             the database to use for running the game
         start: bool = True
             whether to call self.start()

@@ -25,7 +25,7 @@ SPRITE_GROUPS: Dict[str, pygame.sprite.Group] = defaultdict(pygame.sprite.Group)
 class BasicSprite(pygame.sprite.Sprite):
     """
     A base class for all simple sprites
-    They must have a color, location, and speed
+    They must have a location and speed
 
     Parameters
     ----------
@@ -40,24 +40,24 @@ class BasicSprite(pygame.sprite.Sprite):
     location: Tuple[float, float] = (250.0, 250.0)
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
-    speed: float = 5.0
+    rect: pygame.rect.RectType
+        the underlying pygame rect for this sprite
+    speed: float = 10.0
         the top speed that the sprite can move in total
 
     Methods
     -------
     draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
+        implements rendering the sprite onto the given surface
         no need to call pygame.display.flip()
     move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
+        implements movement of the sprite given the key-presses
+        the distance moved is according to self.speed
     """
 
     location: Tuple[float, float] = (250.0, 250.0)
     rect: pygame.rect.RectType
     speed: float = 10.0
-    surf: pygame.SurfaceType
 
     def __init__(
         self,
@@ -72,6 +72,10 @@ class BasicSprite(pygame.sprite.Sprite):
         SPRITE_GROUPS[type(self)].add(self)
 
     def move(self, pressed_keys: Dict[int, bool]) -> None:
+        """
+        Implements movement of the sprite given the key-presses
+        The distance moved is according to self.speed
+        """
         if not self.speed:
             return
 
@@ -118,11 +122,16 @@ class CircleSprite(BasicSprite):
         this means slightly different things for each sprite atm
     radius: Optional[float] = None
         the distance from the location that the circle should occupy
+    rect: pygame.rect.RectType
+        the underlying pygame rect for this sprite
     speed: Optional[float] = None
         the top speed that the sprite can move in total
 
     Attributes
     ----------
+    bg_color: Tuple[int, int, int] = (255, 255, 255)
+        the base background color to fill the screen with before drawing anything else
+        in the format (r,g,b)
     color: Tuple[int, int, int] = (0, 0, 255)
         the color to fill the sprite, in the format (r,g,b)
     location: Tuple[float, float] = (250.0, 250.0)
@@ -130,23 +139,25 @@ class CircleSprite(BasicSprite):
         this means slightly different things for each sprite atm
     radius: float = 75.0
         the distance from the location that the circle should occupy
-    speed: float = 5.0
+    speed: float = 10.0
         the top speed that the sprite can move in total
+    surf: pygame.Surface
+        the underlying pygame surface of the sprite
 
     Methods
     -------
     draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
+        implements rendering the sprite onto the given surface
         no need to call pygame.display.flip()
     move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed just in case
+        implements movement of the sprite given the key-presses
+        the distance moved is according to self.speed
     """
 
     bg_color: Tuple[int, int, int] = (255, 255, 255)  # (r,g,b)
     color: Tuple[int, int, int] = (0, 0, 255)
     radius: float = 75.0
+    surf: pygame.Surface
 
     def __init__(
         self,
@@ -203,25 +214,29 @@ class RectangleSprite(BasicSprite):
     location: Tuple[float, float] = (250.0, 250.0)
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
-    size: Optional[Tuple[float, float]] = None
+    rect: pygame.rect.RectType
+        the underlying pygame rect for this sprite
+    size: Tuple[float, float] = (50.0, 50.0)
         the width and height the rectangle should occupy
         the top-left corner is at the given location
-    speed: float = 5.0
+    speed: float = 10.0
         the top speed that the sprite can move in total
+    surf: pygame.Surface
+        the underlying pygame surface of the sprite
 
     Methods
     -------
     draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
+        implements rendering the sprite onto the given surface
         no need to call pygame.display.flip()
     move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
+        implements movement of the sprite given the key-presses
+        the distance moved is according to self.speed
     """
 
-    size: Tuple[float, float] = (50.0, 50.0)
     color: Tuple[int, int, int] = (0, 0, 255)
+    size: Tuple[float, float] = (50.0, 50.0)
+    surf: pygame.Surface
 
     def __init__(
         self,

@@ -31,24 +31,25 @@ class IconSprite(BasicSprite):
 
     Attributes
     ----------
+    image: pygame.Surface
+        the underlying pygame surface of the sprite
     location: Tuple[float, float] = (250.0, 250.0)
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
-    size: Optional[Tuple[float, float]] = None
+    size: Tuple[float, float] = (50.0, 50.0)
         the width and height the rectangle should occupy
         the top-left corner is at the given location
-    speed: float = 5.0
+    speed: float = 10.0
         the top speed that the sprite can move in total
 
     Methods
     -------
     draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
+        implements rendering the sprite onto the given surface
         no need to call pygame.display.flip()
     move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
+        implements movement of the sprite given the key-presses
+        the distance moved is according to self.speed
     """
 
     image: pygame.Surface
@@ -100,28 +101,36 @@ class VillagerIconSprite(IconSprite):
 
     Attributes
     ----------
+    db: Optional[Database] = None
+        the database to hold the Villager data for this sprite
+    image: pygame.Surface
+        the underlying pygame surface of the sprite
     location: Tuple[float, float] = (250.0, 250.0)
         where in the game the sprite should be rendered
         this means slightly different things for each sprite atm
-    size: Optional[Tuple[float, float]] = (64.0, 64.0)
+    model: Villager
+        the db entry of the Villager for this sprite
+    size: Tuple[float, float] = (64.0, 64.0)
         the width and height the rectangle should occupy
         the top-left corner is at the given location
-    speed: float = 5.0
+    speed: float = 10.0
         the top speed that the sprite can move in total
 
     Methods
     -------
     draw(self, surface: pygame.SurfaceType) -> None
-        a function to implement rendering the sprite onto the given surface
+        implements rendering the sprite onto the given surface
         no need to call pygame.display.flip()
+    insert(self, db: Database = None) -> None
+        update self.db with db if passed
+        then add self.model into self.db
     move(self, pressed_keys: Dict[int, bool]) -> None
-        a function to implement movement of the sprite given the key-presses
-        the distance moved is according to the speed of the sprite
-        skipped if not self.speed
+        implements movement of the sprite given the key-presses
+        the distance moved is according to self.speed
+        also updates self.model's .x and .y in self.db from self.location
     """
 
     db: Optional[Database]
-    image: pygame.Surface
     model: Villager
     size: Tuple[float, float] = (64.0, 64.0)
 
@@ -156,12 +165,21 @@ class VillagerIconSprite(IconSprite):
             if insert:
                 self.insert()
 
-    def insert(self, db: Database = None):
+    def insert(self, db: Database = None) -> None:
+        """
+        Update self.db with db if passed
+        Then add self.model into self.db
+        """
         if db:
             self.db = db
         self.db.add(self.model)
 
     def move(self, pressed_keys: Dict[int, bool]) -> None:
+        """
+        Implements movement of the sprite given the key-presses
+        The distance moved is according to self.speed
+        Also updates self.model's .x and .y in self.db from self.location
+        """
         super().move(pressed_keys)
 
         self.model.x, self.model.y = self.location
